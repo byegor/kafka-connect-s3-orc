@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -20,8 +21,6 @@ public class OrcWriterTest extends BaseTestWithS3 {
 
     @Test
     public void testWrite() throws Exception {
-        System.out.println("HOME: " + System.getProperty("hadoop.home.dir"));
-
         String filePath = "s3a://test/topic/data.orc";
         ConnectorConfig connectorConfig = new ConnectorConfig(TestUtils.createConfig());
         OrcWriter orcWriter = new OrcWriter(filePath, connectorConfig.getHadoopConfig(), TestUtils.createConnectSchema());
@@ -36,6 +35,10 @@ public class OrcWriterTest extends BaseTestWithS3 {
 
 
         List<Object[]> dataFromFile = TestUtils.getDataFromFile(file.getPath());
-        assertArrayEquals(new Object[]{1}, dataFromFile.get(0));
+        Object[] row = dataFromFile.get(0);
+        assertEquals("id not correct", "1", row[0]);
+        assertEquals("count not correct", 1, row[1]);
+        assertEquals("boole not correct", false, row[2]);
+        assertTrue("date not correct", System.currentTimeMillis() - ((Date) row[3]).getTime() < 5_000);
     }
 }
