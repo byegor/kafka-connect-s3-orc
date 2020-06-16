@@ -19,17 +19,17 @@ public class OrcWriter implements AutoCloseable {
 
     private static final Logger log = LoggerFactory.getLogger(OrcWriter.class);
 
-    public static final String FILE_PATH = "s3a://<bucket>/<dir>/<file>";
+//    public static final String FILE_PATH = "s3a://<bucket>/<dir>/<file>";
     private final Writer writer;
     private final VectorizedRowBatch batch;
     private final DataParser dataParser;
 
-    public OrcWriter(String fileName, Schema connectSchema) {
+    public OrcWriter(String fileName, Configuration hadoopCnf, Schema connectSchema) {
         try {
             dataParser = new DataParser();
-            TypeDescription orcSchema = SchemaConverter.toOrcSchema(connectSchema);
+            TypeDescription orcSchema = SchemaConverter.toOrcSchema(connectSchema); //todo move out
             batch = orcSchema.createRowBatch();
-            writer = createWriter(fileName, orcSchema);
+            writer = createWriter(fileName, hadoopCnf, orcSchema);
         } catch (IOException e) {
             throw new ConnectException("Failed to create writer for file " + fileName, e);
         }
@@ -48,20 +48,21 @@ public class OrcWriter implements AutoCloseable {
         }
     }
 
-    private Writer createWriter(String filePath, TypeDescription schema) throws IOException {
+    private Writer createWriter(String filePath, Configuration hadoopCnf, TypeDescription schema) throws IOException {
         Path path = new Path(filePath);
-        OrcFile.WriterOptions writerConf = getWriterOptions(schema);
-        return OrcFile.createWriter(path, writerConf);
+        OrcFile.WriterOptions writerOptions = OrcFile.writerOptions(hadoopCnf).setSchema(schema);
+        return OrcFile.createWriter(path, writerOptions);
     }
 
-    private OrcFile.WriterOptions getWriterOptions(TypeDescription schema) {
+    /*private OrcFile.WriterOptions getWriterOptions(TypeDescription schema) {
         Configuration hadoopConfig = new Configuration();
+        hadoopConfig.
         hadoopConfig.set("fs.s3a.access.key", "s3a://<bucket>/<dir>/<file>");
         hadoopConfig.set("fs.s3a.secret.key", "s3a://<bucket>/<dir>/<file>");
         hadoopConfig.set("fs.s3a.multipart.size", "16M");
         hadoopConfig.set("fs.s3a.multipart.purge.age", "172800");
         return OrcFile.writerOptions(hadoopConfig).setSchema(schema);
-    }
+    }*/
 
     @Override
     public void close() throws Exception {

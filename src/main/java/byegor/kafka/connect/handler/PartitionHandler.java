@@ -4,6 +4,7 @@ import byegor.kafka.connect.ConnectorConfig;
 import byegor.kafka.connect.orc.OrcWriter;
 import com.amazonaws.thirdparty.joda.time.DateTime;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.utils.SystemTime;
 import org.apache.kafka.common.utils.Time;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -34,6 +36,7 @@ public class PartitionHandler {
     private State state;
     private final Queue<SinkRecord> buffer;
     private final SinkTaskContext context;
+    Configuration hadoopConfiguration;
     private int recordCount;
     private final int flushSize;
     private final long rotateScheduleIntervalMs;
@@ -62,6 +65,7 @@ public class PartitionHandler {
         this.time = time;
         this.tp = tp;
         this.context = context;
+        this.hadoopConfiguration = connectorConfig.getHadoopConfig();
         flushSize = connectorConfig.getInt(ConnectorConfig.FLUSH_SIZE);
         topicsDir = connectorConfig.getString(ConnectorConfig.TOPICS_DIR);
 
@@ -155,14 +159,15 @@ public class PartitionHandler {
     }
 
     private String encodePartition(SinkRecord record) {
-        LocalDate localDate = LocalDate.ofInstant(Instant.ofEpochMilli(record.timestamp()), ZoneId.systemDefault());
+        Instant instant = Instant.ofEpochMilli(record.timestamp());
+        LocalDate localDate = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalDate();
         return record.topic() + dirDelim + localDate.getYear() + dirDelim + localDate.getMonth();
     }
 
     /**
      * Check if we should rotate the file (schema change, time-based).
      *
-     * @returns true if rotation is being performed, false otherwise
+     * @return true if rotation is being performed, false otherwise
      */
     private boolean checkRotationOrAppend(
             SinkRecord record,
@@ -317,7 +322,7 @@ public class PartitionHandler {
                 encodedPartition,
                 commitFilename
         );
-        OrcWriter writer = new OrcWriter(commitFilename, record.valueSchema());
+        OrcWriter writer = new OrcWriter(commitFilename, hadoopConfiguration, record.valueSchema());
         writers.put(encodedPartition, writer);
         return writer;
     }
@@ -346,8 +351,8 @@ public class PartitionHandler {
                 + "-"
                 + tp.partition()
                 + "-"
-                +  startOffset
-                + ".csv";
+                + startOffset
+                + ".orc";
         return fileKey(topicsDir, dirPrefix, name);
     }
 

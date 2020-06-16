@@ -1,5 +1,6 @@
 package byegor.kafka.connect;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.kafka.common.config.ConfigDef;
 
 import java.util.Map;
@@ -25,20 +26,23 @@ public class ConnectorConfig {
     public static final String LOCAL_TMP_DIR = "tmp.dir";
 
 
-    private final Map<String, Object> config;
+    private final Map<String, Object> connectorConfig;
+    private final Configuration hadoopCnf;
 
     public ConnectorConfig(Map<String, String> props) {
-        ConfigDef config = getConfig();
+        this.hadoopCnf = getHadoopConfiguration(props);
+
+        ConfigDef config = getConfigDefenition();
         Map<String, Object> parsedConfig = config.parse(props);
-        this.config = parsedConfig;
+        this.connectorConfig = parsedConfig;
     }
 
     public <T> T getProperty(String propery, Class<T> clazz) {
-        return (T) config.get(propery);
+        return (T) connectorConfig.get(propery);
     }
 
     public <T> Class<T> getClass(String property) {
-        return (Class<T>) config.get(property);
+        return (Class<T>) connectorConfig.get(property);
     }
 
 
@@ -55,10 +59,32 @@ public class ConnectorConfig {
     }
 
     public String getName() {
-        return (String) config.get(NAME);
+        return (String) connectorConfig.get(NAME);
     }
 
-    public static ConfigDef getConfig() {
+    public Map<String, Object> getConfig() {
+        return connectorConfig;
+    }
+
+    public Configuration getHadoopConfig() {
+        return hadoopCnf;
+    }
+
+    private Configuration getHadoopConfiguration(Map<String, String> config) {
+        Configuration cnf = new Configuration();
+        String prefix = "hadoop.";
+        int length = prefix.length();
+        for (Map.Entry<String, String> entry : config.entrySet()) {
+            String propertyKey = entry.getKey();
+            if (propertyKey.startsWith(prefix)) {
+                String hadoopKey = propertyKey.substring(length);
+                cnf.set(hadoopKey, entry.getValue());
+            }
+        }
+        return cnf;
+    }
+
+    public static ConfigDef getConfigDefenition() {
         ConfigDef configDef = new ConfigDef();
 
         final String group = "S3";
