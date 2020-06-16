@@ -38,7 +38,7 @@ public class OrcWriterTest extends BaseTestWithS3 {
         Object[] row = dataFromFile.get(0);
         assertEquals("id not correct", "0", row[0]);
         assertEquals("count not correct", 0L, row[1]);
-        assertEquals("boolean not correct", 0L, row[2]);
+        assertEquals("boolean not correct", 1L, row[2]);
         assertTrue("date not correct", System.currentTimeMillis() - ((Date) row[3]).getTime() < 5_000);
     }
 }
