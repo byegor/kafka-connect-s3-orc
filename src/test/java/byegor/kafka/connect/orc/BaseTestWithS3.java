@@ -33,7 +33,7 @@ public class BaseTestWithS3 {
     @BeforeClass
     public static void setUp() throws Exception {
         BasicConfigurator.configure();
-        System.setProperty("hadoop.home.dir", new File("target\\test-classes\\hadoop-2.9.2").getAbsolutePath());
+        System.setProperty("hadoop.home.dir", new File("target").getAbsolutePath());
         File s3mockDir = temporaryFolder.newFolder("s3-tests");
         s3mock = S3Mock.create(9191, s3mockDir.getCanonicalPath());
         s3mock.start();
