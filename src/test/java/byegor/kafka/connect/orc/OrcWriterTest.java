@@ -4,20 +4,24 @@ import byegor.kafka.connect.ConnectorConfig;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.util.IOUtils;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.kafka.connect.sink.SinkRecord;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class OrcWriterTest extends BaseTestWithS3 {
 
+    @Before
+    public void linuxOnly() {
+        String os = System.getProperty("os.name").toLowerCase();
+        org.junit.Assume.assumeTrue(!os.contains("win"));
+    }
 
     @Test
     public void testWrite() throws Exception {
