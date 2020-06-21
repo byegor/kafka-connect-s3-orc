@@ -36,7 +36,6 @@ public class TestUtils {
         conf.put("hadoop.fs.s3a.access.key", "access");
         conf.put("hadoop.fs.s3a.secret.key", "secret");
         conf.put("hadoop.fs.s3a.endpoint", BaseTestWithS3.S3_TEST_URL);
-        conf.put("hadoop.fs.file.impl", WindowsTestFileSystem.class.getName());
         conf.put(ConnectorConfig.ROTATE_UNION_INTERVAL_MS, "2000");
         conf.put("aws.accessKeyId", "2000");
         conf.put("aws.secretKey", "2000");

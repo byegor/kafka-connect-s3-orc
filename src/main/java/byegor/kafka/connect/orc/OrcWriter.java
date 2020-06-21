@@ -54,16 +54,6 @@ public class OrcWriter implements AutoCloseable {
         return OrcFile.createWriter(path, writerOptions);
     }
 
-    /*private OrcFile.WriterOptions getWriterOptions(TypeDescription schema) {
-        Configuration hadoopConfig = new Configuration();
-        hadoopConfig.
-        hadoopConfig.set("fs.s3a.access.key", "s3a://<bucket>/<dir>/<file>");
-        hadoopConfig.set("fs.s3a.secret.key", "s3a://<bucket>/<dir>/<file>");
-        hadoopConfig.set("fs.s3a.multipart.size", "16M");
-        hadoopConfig.set("fs.s3a.multipart.purge.age", "172800");
-        return OrcFile.writerOptions(hadoopConfig).setSchema(schema);
-    }*/
-
     @Override
     public void close() throws Exception {
         if (batch.size != 0) {
